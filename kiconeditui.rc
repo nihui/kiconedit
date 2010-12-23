@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gui name="kiconedit"
+     version="1"
+     xmlns="http://www.kde.org/standards/kxmlgui/1.0"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0
+                         http://www.kde.org/standards/kxmlgui/1.0/kxmlgui.xsd">
+<MenuBar>
+  <Menu name="settings">
+    <Action name="options_show_grid"/>
+  </Menu>
+</MenuBar>
+<ToolBar name="mainToolBar">
+  <text>Main Toolbar</text>
+  <Action name="view_zoom_in"/>
+  <Action name="view_zoom_out"/>
+  <Separator/>
+  <Action name="edit_resize"/>
+  <Action name="edit_grayscale"/>
+  <Separator/>
+  <Action name="options_show_grid"/>
+</ToolBar>
+<ToolBar name="toolsToolBar">
+  <text>Tools Toolbar</text>
+  <Action name="tool_freehand"/>
+  <Action name="tool_find_pixel"/>
+  <Action name="tool_rectangle"/>
+  <Action name="tool_filled_rectangle"/>
+  <Action name="tool_circle"/>
+  <Action name="tool_filled_circle"/>
+  <Action name="tool_ellipse"/>
+  <Action name="tool_filled_ellipse"/>
+  <Action name="tool_spray"/>
+  <Action name="tool_flood_fill"/>
+  <Action name="tool_line"/>
+  <Action name="tool_eraser"/>
+  <Separator/>
+  <Action name="edit_select_rectangle"/>
+  <Action name="edit_select_circle"/>
+</ToolBar>
+<ToolBar name="paletteToolBar">
+  <text>Pallette Toolbar</text>
+</ToolBar>
+</gui>
