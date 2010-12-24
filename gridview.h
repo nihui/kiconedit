@@ -18,7 +18,7 @@ class GridView : public QScrollArea
         void zoomIn();
         void zoomOut();
         void zoomReset();
-        void zoomTo( double z );
+        void zoomTo( int zp );
     protected:
         virtual void mouseMoveEvent( QMouseEvent* event );
         virtual void resizeEvent( QResizeEvent* event );
@@ -26,7 +26,7 @@ class GridView : public QScrollArea
         KRuler* m_hRuler;
         KRuler* m_vRuler;
         IconGrid* m_iconGrid;
-        double m_scaleFactor;
+        int m_zoomIndex;
 };
 
 #endif // GRIDVIEW_H

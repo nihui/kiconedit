@@ -7,8 +7,12 @@
 #include <KLocale>
 #include <KRuler>
 
+static const int zoomLevels[10] = {
+    1, 2, 4, 7, 10, 14, 18, 24, 32, 44
+};
+
 GridView::GridView( IconGrid* iconGrid, QWidget* parent )
-    : QScrollArea( parent ), m_iconGrid( iconGrid )
+    : QScrollArea( parent ), m_iconGrid( iconGrid ), m_zoomIndex(4)
 {
     m_hRuler = new KRuler( Qt::Horizontal, this );
     m_hRuler->setEndLabel( i18n( "width" ) );
@@ -44,24 +48,29 @@ GridView::~GridView()
 
 void GridView::zoomIn()
 {
-    zoomTo( 15.0 );
+    if ( ++m_zoomIndex > 9 )
+        m_zoomIndex = 9;
+    zoomTo( zoomLevels[ m_zoomIndex ] );
 }
 
 void GridView::zoomOut()
 {
-    zoomTo( 10.0 );
+    if ( --m_zoomIndex < 0 )
+        m_zoomIndex = 0;
+    zoomTo( zoomLevels[ m_zoomIndex ] );
 }
 
 void GridView::zoomReset()
 {
-    zoomTo( 10.0 );
+    m_zoomIndex = 4;
+    zoomTo( zoomLevels[ m_zoomIndex ] );
 }
 
-void GridView::zoomTo( double z )
+void GridView::zoomTo( int zp )
 {
-    m_hRuler->setPixelPerMark( z );
-    m_vRuler->setPixelPerMark( z );
-    m_iconGrid->slotUnitPixelsChanged( z );
+    m_hRuler->setPixelPerMark( zp );
+    m_vRuler->setPixelPerMark( zp );
+    m_iconGrid->slotUnitPixelsChanged( zp );
 }
 
 void GridView::mouseMoveEvent( QMouseEvent* event )

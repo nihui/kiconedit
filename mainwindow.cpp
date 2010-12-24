@@ -93,6 +93,7 @@ void MainWindow::setupActions()
 
     KStandardAction::zoomIn( m_view, SLOT( zoomIn() ), actionCollection() );
     KStandardAction::zoomOut( m_view, SLOT( zoomOut() ), actionCollection() );
+    KStandardAction::actualSize( m_view, SLOT( zoomReset() ), actionCollection() );
     setupGUI();
 }
 
