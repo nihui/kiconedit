@@ -29,7 +29,7 @@ IconGrid::IconGrid( Palette* palette, QWidget* parent )
 //             int g = rand() % 255;
 //             srand( (i+1) * 200 + j+1 );
 //             int b = rand() % 255;
-            m_colorArray.append( QColor(255,255,255,255)/*QColor( r, g, b )*/ );
+            m_colorArray.append( QColor(0,0,0,0)/*QColor( r, g, b )*/ );
         }
     }
 
@@ -81,18 +81,20 @@ void IconGrid::setCellColor( int col, int row, const QColor& color )
 
 void IconGrid::setCellColor( const QPoint& pos, const QColor& color )
 {
-    m_colorArray[ pos.y() * m_cols + pos.x() ] = color;
+    setCellColor( pos.x(), pos.y(), color );
 }
 
 void IconGrid::undo()
 {
     m_undoStack.undo();
+//     update();
     repaint();
 }
 
 void IconGrid::redo()
 {
     m_undoStack.redo();
+//     update();
     repaint();
 }
 
@@ -141,6 +143,7 @@ void IconGrid::mouseMoveEvent( QMouseEvent* event )
                         /// FIXME:change the color
                         m_undoStack.push( new DrawLine( this, oldCol_r, oldRow_r, newCol, newRow,
                                                         m_palette->foregroundColor() ) );
+//                         update();
                         repaint();
                     }
                 }
@@ -168,6 +171,7 @@ void IconGrid::mousePressEvent( QMouseEvent* event )
                     m_undoStack.beginMacro( "freehand" );
                     m_undoStack.push( new DrawCell( this, m_currentCol, m_currentRow,
                                                     m_palette->foregroundColor() ) );
+//                     update();
                     repaint();
                     break;
                 default:
@@ -212,9 +216,19 @@ void IconGrid::paintEvent( QPaintEvent* event )
     int index = 0;
     for ( int i = 0; i < m_rows; ++i ) {
         for ( int j = 0; j < m_cols; ++j ) {
-            painter.fillRect( m_unitPixels*j, m_unitPixels*i,
+            int xStart = m_unitPixels * j;
+            int yStart = m_unitPixels * i;
+            /// draw transparent indicator background
+            painter.fillRect( xStart + m_unitPixels / 2, yStart,
+                              m_unitPixels / 2, m_unitPixels / 2,
+                              Qt::lightGray );
+            painter.fillRect( xStart, yStart + m_unitPixels / 2,
+                              m_unitPixels / 2, m_unitPixels / 2,
+                              Qt::lightGray );
+            /// draw icon pixels
+            painter.fillRect( xStart, yStart,
                               m_unitPixels, m_unitPixels,
-                              m_colorArray.value( index++ ) );
+                              m_colorArray.at( index++ ) );
         }
     }
 

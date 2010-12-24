@@ -16,28 +16,31 @@ class DrawCell : public QUndoCommand
         DrawCell( IconGrid* grid, int col, int row,
                   const QColor& newColor )
         : m_grid( grid ),
-        m_pos( QPoint( col, row ) ),
+        m_col( col ),
+        m_row( row ),
         m_newColor( newColor ) {
             setText( "draw cell" );
-            m_oldColor = m_grid->cellColorAt( col, row );
+            m_oldColor = m_grid->cellColorAt( m_col, m_row );
         }
         DrawCell( IconGrid* grid, const QPoint& pos,
                   const QColor& newColor )
         : m_grid( grid ),
-        m_pos( pos ),
+        m_col( pos.x() ),
+        m_row( pos.y() ),
         m_newColor( newColor ) {
             setText( "draw cell" );
-            m_oldColor = m_grid->cellColorAt( pos.x(), pos.y() );
+            m_oldColor = m_grid->cellColorAt( m_col, m_row );
         }
         virtual void undo() {
-            m_grid->setCellColor( m_pos, m_oldColor );
+            m_grid->setCellColor( m_col, m_row, m_oldColor );
         }
         virtual void redo() {
-            m_grid->setCellColor( m_pos, m_newColor );
+            m_grid->setCellColor( m_col, m_row, m_newColor );
         }
     private:
         IconGrid* m_grid;
-        QPoint m_pos;
+        int m_col;
+        int m_row;
         QColor m_oldColor;
         QColor m_newColor;
 };
@@ -48,12 +51,12 @@ class DrawLine : public QUndoCommand
         DrawLine( IconGrid* grid, int startCol, int startRow, int endCol, int endRow,
                   const QColor& newColor ) {
             setText( "draw line" );
-            setLineColor( grid, QPoint( startCol, startRow ), QPoint( endCol, endRow ), newColor );
+            setLineColor( grid, startCol, startRow, endCol, endRow, newColor );
         }
         DrawLine( IconGrid* grid, const QPoint& startPos, const QPoint& endPos,
                   const QColor& newColor ) {
             setText( "draw line" );
-            setLineColor( grid, startPos, endPos, newColor );
+            setLineColor( grid, startPos.x(), startPos.y(), endPos.x(), endPos.y(), newColor );
         }
         virtual ~DrawLine() {
             qDeleteAll( m_drawCells );
@@ -75,13 +78,13 @@ class DrawLine : public QUndoCommand
             }
         }
     protected:
-        void setLineColor( IconGrid* grid, const QPoint& startPos, const QPoint& endPos, const QColor& color ) {
-            int deltaCol = qAbs( startPos.x() - endPos.x() );
-            int deltaRow = qAbs( startPos.y() - endPos.y() );
-            int colStep = ( startPos.x() < endPos.x() ) ? 1 : -1;
-            int rowStep = ( startPos.y() < endPos.y() ) ? 1 : -1;
-            int drawCol = startPos.x();
-            int drawRow = startPos.y();
+        void setLineColor( IconGrid* grid, int startCol, int startRow, int endCol, int endRow, const QColor& color ) {
+            int deltaCol = qAbs( startCol - endCol );
+            int deltaRow = qAbs( startRow - endRow );
+            int colStep = ( startCol < endCol ) ? 1 : -1;
+            int rowStep = ( startRow < endRow ) ? 1 : -1;
+            int drawCol = startCol;
+            int drawRow = startRow;
             if ( deltaCol >= deltaRow ) {
                 double ey = (double)deltaRow / (double)deltaCol;
                 for ( int i = 1; i <= deltaCol; ++i ) {
