@@ -4,6 +4,7 @@
 #include <QColor>
 #include <QPoint>
 #include <QUndoCommand>
+#include <QVector>
 
 #include <QDebug>
 
@@ -13,17 +14,21 @@ class DrawCell : public QUndoCommand
 {
     public:
         DrawCell( IconGrid* grid, int col, int row,
-                  const QColor& oldColor, const QColor& newColor )
-                : m_grid( grid ),
-                m_pos( QPoint( col, row ) ),
-                m_oldColor( oldColor ),
-                m_newColor( newColor ) { setText( "draw cell" ); }
+                  const QColor& newColor )
+        : m_grid( grid ),
+        m_pos( QPoint( col, row ) ),
+        m_newColor( newColor ) {
+            setText( "draw cell" );
+            m_oldColor = m_grid->cellColorAt( col, row );
+        }
         DrawCell( IconGrid* grid, const QPoint& pos,
-                  const QColor& oldColor, const QColor& newColor )
-                : m_grid( grid ),
-                m_pos( pos ),
-                m_oldColor( oldColor ),
-                m_newColor( newColor ) { setText( "draw cell" ); }
+                  const QColor& newColor )
+        : m_grid( grid ),
+        m_pos( pos ),
+        m_newColor( newColor ) {
+            setText( "draw cell" );
+            m_oldColor = m_grid->cellColorAt( pos.x(), pos.y() );
+        }
         virtual void undo() {
             m_grid->setCellColor( m_pos, m_oldColor );
         }
@@ -41,54 +46,61 @@ class DrawLine : public QUndoCommand
 {
     public:
         DrawLine( IconGrid* grid, int startCol, int startRow, int endCol, int endRow,
-                  const QColor& oldColor, const QColor& newColor )
-                : m_grid( grid ),
-                m_startPos( QPoint( startCol, startRow ) ),
-                m_endPos( QPoint( endCol, endRow ) ),
-                m_oldColor( oldColor ),
-                m_newColor( newColor ) { setText( "draw line" ); }
+                  const QColor& newColor ) {
+            setText( "draw line" );
+            setLineColor( grid, QPoint( startCol, startRow ), QPoint( endCol, endRow ), newColor );
+        }
         DrawLine( IconGrid* grid, const QPoint& startPos, const QPoint& endPos,
-                  const QColor& oldColor, const QColor& newColor )
-                : m_grid( grid ),
-                m_startPos( startPos ),
-                m_endPos( endPos ),
-                m_oldColor( oldColor ),
-                m_newColor( newColor ) { setText( "draw line" ); }
+                  const QColor& newColor ) {
+            setText( "draw line" );
+            setLineColor( grid, startPos, endPos, newColor );
+        }
+        virtual ~DrawLine() {
+            qDeleteAll( m_drawCells );
+        }
         virtual void undo() {
-            setLineColor( m_oldColor );
+            QVector<DrawCell*>::Iterator it = m_drawCells.begin();
+            QVector<DrawCell*>::Iterator end = m_drawCells.end();
+            while ( it != end ) {
+                (*it)->undo();
+                ++it;
+            }
         }
         virtual void redo() {
-            setLineColor( m_newColor );
+            QVector<DrawCell*>::Iterator it = m_drawCells.begin();
+            QVector<DrawCell*>::Iterator end = m_drawCells.end();
+            while ( it != end ) {
+                (*it)->redo();
+                ++it;
+            }
         }
     protected:
-        void setLineColor( const QColor& color ) {
-            int deltaCol = qAbs( m_startPos.x() - m_endPos.x() );
-            int deltaRow = qAbs( m_startPos.y() - m_endPos.y() );
-            int colStep = ( m_startPos.x() < m_endPos.x() ) ? 1 : -1;
-            int rowStep = ( m_startPos.y() < m_endPos.y() ) ? 1 : -1;
-            int drawCol = m_startPos.x();
-            int drawRow = m_startPos.y();
+        void setLineColor( IconGrid* grid, const QPoint& startPos, const QPoint& endPos, const QColor& color ) {
+            int deltaCol = qAbs( startPos.x() - endPos.x() );
+            int deltaRow = qAbs( startPos.y() - endPos.y() );
+            int colStep = ( startPos.x() < endPos.x() ) ? 1 : -1;
+            int rowStep = ( startPos.y() < endPos.y() ) ? 1 : -1;
+            int drawCol = startPos.x();
+            int drawRow = startPos.y();
             if ( deltaCol >= deltaRow ) {
                 double ey = (double)deltaRow / (double)deltaCol;
                 for ( int i = 1; i <= deltaCol; ++i ) {
                     drawCol += colStep;
-                    m_grid->setCellColor( QPoint( drawCol, drawRow + qRound( ey * i ) * rowStep ), color );
+                    DrawCell* drawCell = new DrawCell( grid, drawCol, drawRow + qRound( ey * i ) * rowStep, color );
+                    m_drawCells.append( drawCell );
                 }
             }
             else {
                 double ex = (double)deltaCol / (double)deltaRow;
                 for ( int i = 1; i <= deltaRow; ++i ) {
                     drawRow += rowStep;
-                    m_grid->setCellColor( QPoint( drawCol + qRound( ex * i ) * colStep, drawRow ), color );
+                    DrawCell* drawCell = new DrawCell( grid, drawCol + qRound( ex * i ) * colStep, drawRow, color );
+                    m_drawCells.append( drawCell );
                 }
             }
         }
     private:
-        IconGrid* m_grid;
-        QPoint m_startPos;
-        QPoint m_endPos;
-        QColor m_oldColor;
-        QColor m_newColor;
+        QVector<DrawCell*> m_drawCells;
 };
 
 #endif // UNDOCMD_H

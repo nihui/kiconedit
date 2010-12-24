@@ -24,6 +24,7 @@ class IconGrid : public QWidget
         QColor currentColor() const;
         int currentCol() const;
         int currentRow() const;
+        QColor cellColorAt( int col, int row ) const;
         void setCellColor( int col, int row, const QColor& color );
         void setCellColor( const QPoint& pos, const QColor& color );
     public Q_SLOTS:

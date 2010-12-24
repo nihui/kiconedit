@@ -56,7 +56,7 @@ QImage IconGrid::toImage() const
 
 QColor IconGrid::currentColor() const
 {
-    return m_colorArray.value( m_currentRow * m_cols + m_currentCol );
+    return cellColorAt( m_currentRow, m_currentCol );
 }
 
 int IconGrid::currentCol() const
@@ -67,6 +67,11 @@ int IconGrid::currentCol() const
 int IconGrid::currentRow() const
 {
     return m_currentRow;
+}
+
+QColor IconGrid::cellColorAt( int col, int row ) const
+{
+    return m_colorArray.value( row * m_cols + col );
 }
 
 void IconGrid::setCellColor( int col, int row, const QColor& color )
@@ -135,11 +140,13 @@ void IconGrid::mouseMoveEvent( QMouseEvent* event )
                     if ( m_colorArray[ newRow * m_cols + newCol ] != m_palette->foregroundColor() ) {
                         /// FIXME:change the color
                         m_undoStack.push( new DrawLine( this, oldCol_r, oldRow_r, newCol, newRow,
-                                                        m_colorArray[ newRow * m_cols + newCol ],
                                                         m_palette->foregroundColor() ) );
                         repaint();
                     }
                 }
+                break;
+            default:
+                break;
         }
     }
 }
@@ -160,9 +167,11 @@ void IconGrid::mousePressEvent( QMouseEvent* event )
 //                     qDebug() << "BEGIN";
                     m_undoStack.beginMacro( "freehand" );
                     m_undoStack.push( new DrawCell( this, m_currentCol, m_currentRow,
-                                                    m_colorArray[ m_currentRow * m_cols + m_currentCol ],
                                                     m_palette->foregroundColor() ) );
                     repaint();
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -187,6 +196,9 @@ void IconGrid::mouseReleaseEvent( QMouseEvent* event )
         case KIconEdit::Freehand:
 //             qDebug() << "END";
             m_undoStack.endMacro();
+            break;
+        default:
+            break;
     }
 }
 
@@ -204,5 +216,13 @@ void IconGrid::paintEvent( QPaintEvent* event )
                               m_unitPixels, m_unitPixels,
                               m_colorArray.value( index++ ) );
         }
+    }
+
+    /// draw grid
+    for ( int i = 0; i < m_rows; ++i ) {
+        painter.drawLine( 0, m_unitPixels*i, m_unitPixels*m_cols, m_unitPixels*i );
+    }
+    for ( int i = 0; i < m_cols; ++i ) {
+        painter.drawLine( m_unitPixels*i, 0, m_unitPixels*i, m_unitPixels*m_rows );
     }
 }
