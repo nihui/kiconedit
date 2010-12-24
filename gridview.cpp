@@ -7,8 +7,8 @@
 #include <KLocale>
 #include <KRuler>
 
-GridView::GridView( QWidget* parent )
-    : QScrollArea( parent )
+GridView::GridView( IconGrid* iconGrid, QWidget* parent )
+    : QScrollArea( parent ), m_iconGrid( iconGrid )
 {
     m_hRuler = new KRuler( Qt::Horizontal, this );
     m_hRuler->setEndLabel( i18n( "width" ) );
@@ -31,11 +31,37 @@ GridView::GridView( QWidget* parent )
     m_vRuler->setShowEndMarks( true );
 
     setViewportMargins( m_hRuler->height(), m_vRuler->width(), 0, 0 );
+    setWidget( m_iconGrid );
+
+    connect( m_iconGrid, SIGNAL( cursorXChanged( int ) ), m_hRuler, SLOT( slotNewValue( int ) ) );
+    connect( m_iconGrid, SIGNAL( cursorYChanged( int ) ), m_vRuler, SLOT( slotNewValue( int ) ) );
 }
 
 GridView::~GridView()
 {
 //     kDebug() << "#############################################~~~~~~~~~~~~";
+}
+
+void GridView::zoomIn()
+{
+    zoomTo( 15.0 );
+}
+
+void GridView::zoomOut()
+{
+    zoomTo( 10.0 );
+}
+
+void GridView::zoomReset()
+{
+    zoomTo( 10.0 );
+}
+
+void GridView::zoomTo( double z )
+{
+    m_hRuler->setPixelPerMark( z );
+    m_vRuler->setPixelPerMark( z );
+    m_iconGrid->slotUnitPixelsChanged( z );
 }
 
 void GridView::mouseMoveEvent( QMouseEvent* event )

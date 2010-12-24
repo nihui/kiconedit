@@ -26,16 +26,17 @@ class IconGrid : public QWidget
         int currentRow() const;
         void setCellColor( int col, int row, const QColor& color );
         void setCellColor( const QPoint& pos, const QColor& color );
-        void undo() { m_undoStack.undo(); }
-        void redo() { m_undoStack.redo(); }
-    signals:
+    public Q_SLOTS:
+        void undo();
+        void redo();
+    Q_SIGNALS:
         void currentColChanged( int newCol );
         void currentRowChanged( int newRow );
         void cursorColChanged( int newCol );
         void cursorRowChanged( int newRow );
         void cursorXChanged( int newX );
         void cursorYChanged( int newY );
-    public slots:
+    public Q_SLOTS:
         void slotUnitPixelsChanged( int newUnitPixels );
         void slotToolChanged( QAction* action );
     protected:

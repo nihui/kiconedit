@@ -29,7 +29,7 @@ IconGrid::IconGrid( Palette* palette, QWidget* parent )
 //             int g = rand() % 255;
 //             srand( (i+1) * 200 + j+1 );
 //             int b = rand() % 255;
-            m_colorArray.append( QColor(255,255,255)/*QColor( r, g, b )*/ );
+            m_colorArray.append( QColor(255,255,255,255)/*QColor( r, g, b )*/ );
         }
     }
 
@@ -44,12 +44,11 @@ IconGrid::~IconGrid()
 
 QImage IconGrid::toImage() const
 {
-    QImage image( m_cols, m_rows, QImage::Format_RGB32 );
+    QImage image( m_cols, m_rows, QImage::Format_ARGB32 );
     for ( int i = 0; i < m_rows; ++i ) {
         for ( int j = 0; j < m_cols; ++j ) {
-            QColormap cmap = QColormap::instance();
-            uint pixel  = cmap.pixel( m_colorArray.at( i * m_cols + j ) );
-            image.setPixel( j, i, pixel );
+            QColor c = m_colorArray.at( i * m_cols + j );
+            image.setPixel( j, i, c.rgba() );
         }
     }
     return image;
@@ -78,6 +77,18 @@ void IconGrid::setCellColor( int col, int row, const QColor& color )
 void IconGrid::setCellColor( const QPoint& pos, const QColor& color )
 {
     m_colorArray[ pos.y() * m_cols + pos.x() ] = color;
+}
+
+void IconGrid::undo()
+{
+    m_undoStack.undo();
+    repaint();
+}
+
+void IconGrid::redo()
+{
+    m_undoStack.redo();
+    repaint();
 }
 
 void IconGrid::slotUnitPixelsChanged( int newUnitPixels )

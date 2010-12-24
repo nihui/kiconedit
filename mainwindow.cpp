@@ -34,14 +34,9 @@ MainWindow::MainWindow( QWidget* parent )
     addDockWidget( Qt::RightDockWidgetArea, paletteDock );
     ///viewMenu->addAction( paletteDock->toggleViewAction() );
 
-    m_view = new GridView;
-    setCentralWidget( m_view );
-
     m_iconGrid = new IconGrid( m_palette );
-    m_view->setWidget( m_iconGrid );
-
-    connect( m_iconGrid, SIGNAL( cursorXChanged( int ) ), m_view->hRuler(), SLOT( slotNewValue( int ) ) );
-    connect( m_iconGrid, SIGNAL( cursorYChanged( int ) ), m_view->vRuler(), SLOT( slotNewValue( int ) ) );
+    m_view = new GridView( m_iconGrid );
+    setCentralWidget( m_view );
 
     setupActions();
 }
@@ -87,8 +82,8 @@ void MainWindow::setupActions()
 
     KStandardAction::preferences( this, SLOT( slotConfigureSettings() ), actionCollection() );
 
-    KStandardAction::undo( this, SLOT( undo() ), actionCollection() );
-    KStandardAction::redo( this, SLOT( redo() ), actionCollection() );
+    KStandardAction::undo( m_iconGrid, SLOT( undo() ), actionCollection() );
+    KStandardAction::redo( m_iconGrid, SLOT( redo() ), actionCollection() );
 
     KStandardAction::cut( this, SLOT( cut() ), actionCollection() );
     KStandardAction::copy( this, SLOT( copy() ), actionCollection() );
@@ -96,8 +91,8 @@ void MainWindow::setupActions()
     KStandardAction::clear( this, SLOT( clear() ), actionCollection() );
     KStandardAction::selectAll( this, SLOT( selectAll() ), actionCollection() );
 
-    KStandardAction::zoomIn( this, SLOT( zoomIn() ), actionCollection() );
-    KStandardAction::zoomOut( this, SLOT( zoomOut() ), actionCollection() );
+    KStandardAction::zoomIn( m_view, SLOT( zoomIn() ), actionCollection() );
+    KStandardAction::zoomOut( m_view, SLOT( zoomOut() ), actionCollection() );
     setupGUI();
 }
 
@@ -174,30 +169,4 @@ void MainWindow::print()
 //         p.drawPixmap( margin, margin + yPos, grid->pixmap() );
 //         p.end();
 //     }
-}
-
-void MainWindow::undo()
-{
-    m_iconGrid->undo();
-    m_iconGrid->repaint();
-}
-
-void MainWindow::redo()
-{
-    m_iconGrid->redo();
-    m_iconGrid->repaint();
-}
-
-void MainWindow::zoomIn()
-{
-    m_iconGrid->slotUnitPixelsChanged( 15 );
-    m_view->hRuler()->setPixelPerMark( 15.0 );
-    m_view->vRuler()->setPixelPerMark( 15.0 );
-}
-
-void MainWindow::zoomOut()
-{
-    m_iconGrid->slotUnitPixelsChanged( 10 );
-    m_view->hRuler()->setPixelPerMark( 10.0 );
-    m_view->vRuler()->setPixelPerMark( 10.0 );
 }

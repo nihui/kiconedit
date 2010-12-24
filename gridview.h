@@ -6,20 +6,27 @@
 class QResizeEvent;
 class QWidget;
 class KRuler;
+class IconGrid;
+
 class GridView : public QScrollArea
 {
     Q_OBJECT
     public:
-        GridView( QWidget* parent = 0 );
+        GridView( IconGrid* iconGrid, QWidget* parent = 0 );
         ~GridView();
-        KRuler* hRuler() const { return m_hRuler; }
-        KRuler* vRuler() const { return m_vRuler; }
+    public Q_SLOTS:
+        void zoomIn();
+        void zoomOut();
+        void zoomReset();
+        void zoomTo( double z );
     protected:
         virtual void mouseMoveEvent( QMouseEvent* event );
         virtual void resizeEvent( QResizeEvent* event );
     private:
         KRuler* m_hRuler;
         KRuler* m_vRuler;
+        IconGrid* m_iconGrid;
+        double m_scaleFactor;
 };
 
 #endif // GRIDVIEW_H

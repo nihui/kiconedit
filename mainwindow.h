@@ -33,10 +33,6 @@ class MainWindow : public KXmlGuiWindow
         void saveFileAs();
         void saveFileAs( const QString& outputFileName );
         void print();
-        void undo();
-        void redo();
-        void zoomIn();
-        void zoomOut();
     private:
         QString m_fileName;
         GridView* m_view;
