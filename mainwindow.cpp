@@ -88,7 +88,7 @@ void MainWindow::setupActions()
     KStandardAction::cut( this, SLOT( cut() ), actionCollection() );
     KStandardAction::copy( this, SLOT( copy() ), actionCollection() );
     KStandardAction::paste( this, SLOT( paste() ), actionCollection() );
-    KStandardAction::clear( this, SLOT( clear() ), actionCollection() );
+    KStandardAction::clear( m_iconGrid, SLOT( clear() ), actionCollection() );
     KStandardAction::selectAll( this, SLOT( selectAll() ), actionCollection() );
 
     KStandardAction::zoomIn( m_view, SLOT( zoomIn() ), actionCollection() );

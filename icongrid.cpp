@@ -88,6 +88,12 @@ void IconGrid::setCellColor( const QPoint& pos, const QColor& color )
     setCellColor( pos.x(), pos.y(), color );
 }
 
+void IconGrid::clear()
+{
+    m_colorArray.fill( QColor( 0, 0, 0, 0 ) );
+    update();
+}
+
 void IconGrid::undo()
 {
     m_undoStack.undo();
@@ -205,31 +211,30 @@ void IconGrid::mouseReleaseEvent( QMouseEvent* event )
 {
     QWidget::mouseReleaseEvent( event );
 
-    if ( rect().contains( event->pos() ) ) {
-//         if ( event->buttons() == Qt::LeftButton ) {
+//     if ( rect().contains( event->pos() ) ) {
+    if ( event->buttons() == Qt::LeftButton ) {
 //             int x = event->x();
 //             int y = event->y();
 //             m_currentCol = x / m_unitPixels;
 //             m_currentRow = y / m_unitPixels;
 //            /// FIXME:
-// 
-//         }
+//
+        switch ( m_tooltype ) {
+            case KIconEdit::Freehand:
+    //             qDebug() << "END";
+                m_undoStack.endMacro();
+                break;
+            case KIconEdit::Line:
+    //             qWarning() << "END";
+                m_undoStack.push( m_drawCommand );
+                m_drawCommand = NULL;
+                m_undoStack.endMacro();
+                break;
+            default:
+                break;
+        }
     }
-
-    switch ( m_tooltype ) {
-        case KIconEdit::Freehand:
-//             qDebug() << "END";
-            m_undoStack.endMacro();
-            break;
-        case KIconEdit::Line:
-//             qWarning() << "END";
-            m_undoStack.push( m_drawCommand );
-            m_drawCommand = NULL;
-            m_undoStack.endMacro();
-            break;
-        default:
-            break;
-    }
+//     }
 }
 
 void IconGrid::paintEvent( QPaintEvent* event )
