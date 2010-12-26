@@ -11,6 +11,7 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QRect>
+#include <QtCore/qmath.h>
 
 IconGrid::IconGrid( Palette* palette, QWidget* parent )
     : QWidget( parent ), m_palette( palette )
@@ -77,6 +78,7 @@ QColor IconGrid::cellColorAt( int col, int row ) const
 void IconGrid::setCellColor( int col, int row, const QColor& color )
 {
     m_colorArray[ row * m_cols + col ] = color;
+    repaint( col * m_unitPixels, row * m_unitPixels, m_unitPixels, m_unitPixels );
 }
 
 void IconGrid::setCellColor( const QPoint& pos, const QColor& color )
@@ -87,15 +89,11 @@ void IconGrid::setCellColor( const QPoint& pos, const QColor& color )
 void IconGrid::undo()
 {
     m_undoStack.undo();
-//     update();
-    repaint();
 }
 
 void IconGrid::redo()
 {
     m_undoStack.redo();
-//     update();
-    repaint();
 }
 
 void IconGrid::slotUnitPixelsChanged( int newUnitPixels )
@@ -143,8 +141,6 @@ void IconGrid::mouseMoveEvent( QMouseEvent* event )
                         /// FIXME:change the color
                         m_undoStack.push( new DrawLine( this, oldCol_r, oldRow_r, newCol, newRow,
                                                         m_palette->foregroundColor() ) );
-//                         update();
-                        repaint();
                     }
                 }
                 break;
@@ -171,8 +167,6 @@ void IconGrid::mousePressEvent( QMouseEvent* event )
                     m_undoStack.beginMacro( "freehand" );
                     m_undoStack.push( new DrawCell( this, m_currentCol, m_currentRow,
                                                     m_palette->foregroundColor() ) );
-//                     update();
-                    repaint();
                     break;
                 default:
                     break;
@@ -211,11 +205,17 @@ void IconGrid::paintEvent( QPaintEvent* event )
     QWidget::paintEvent( event );
     const QRect urect = event->rect();
 
+    int leftCol = urect.left() / m_unitPixels;
+    int rightCol = urect.right() / m_unitPixels;
+    int topRow = urect.top() / m_unitPixels;
+    int bottomRow = urect.bottom() / m_unitPixels;
+//     qWarning() << leftCol << rightCol << topRow << bottomRow;
+
     QPainter painter( this );
 
-    int index = 0;
-    for ( int i = 0; i < m_rows; ++i ) {
-        for ( int j = 0; j < m_cols; ++j ) {
+    int index = topRow * m_cols + leftCol;
+    for ( int i = topRow; i <= bottomRow; ++i ) {
+        for ( int j = leftCol; j <= rightCol; ++j ) {
             int xStart = m_unitPixels * j;
             int yStart = m_unitPixels * i;
             /// draw transparent indicator background
@@ -233,13 +233,14 @@ void IconGrid::paintEvent( QPaintEvent* event )
             }
             index++;
         }
+        index += m_cols - rightCol + leftCol - 1;
     }
 
     /// draw grid
-    for ( int i = 0; i < m_rows; ++i ) {
+    for ( int i = topRow; i <= bottomRow; ++i ) {
         painter.drawLine( 0, m_unitPixels*i, m_unitPixels*m_cols, m_unitPixels*i );
     }
-    for ( int i = 0; i < m_cols; ++i ) {
+    for ( int i = leftCol; i <= rightCol; ++i ) {
         painter.drawLine( m_unitPixels*i, 0, m_unitPixels*i, m_unitPixels*m_rows );
     }
 }
