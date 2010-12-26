@@ -13,8 +13,10 @@ namespace KIconEdit {
         None        = 0,
         Freehand    = 1,
         Line        = 2,
-        Rectangle   = 3,
-        Ellipse     = 4
+        Eraser      = 3,
+        Colorpicker = 4,
+        Rectangle   = 5,
+        Ellipse     = 6
     } ToolType;
 }
 

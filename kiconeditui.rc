@@ -24,7 +24,9 @@
 <ToolBar name="toolsToolBar">
   <text>Tools Toolbar</text>
   <Action name="tool_freehand"/>
-  <Action name="tool_find_pixel"/>
+  <Action name="tool_line"/>
+  <Action name="tool_eraser"/>
+  <Action name="tool_colorpicker"/>
   <Action name="tool_rectangle"/>
   <Action name="tool_filled_rectangle"/>
   <Action name="tool_circle"/>
@@ -33,8 +35,6 @@
   <Action name="tool_filled_ellipse"/>
   <Action name="tool_spray"/>
   <Action name="tool_flood_fill"/>
-  <Action name="tool_line"/>
-  <Action name="tool_eraser"/>
   <Separator/>
   <Action name="edit_select_rectangle"/>
   <Action name="edit_select_circle"/>

@@ -72,6 +72,20 @@ void MainWindow::setupActions()
     actionCollection()->addAction( "tool_line", lineAction );
     toolActionGroup->addAction( lineAction );
 
+    KToggleAction* eraserAction = new KToggleAction( this );
+    eraserAction->setText( i18n( "Eraser" ) );
+    eraserAction->setIcon( KIcon( "draw-eraser" ) );
+    eraserAction->setData( QVariant::fromValue( KIconEdit::Eraser ) );
+    actionCollection()->addAction( "tool_eraser", eraserAction );
+    toolActionGroup->addAction( eraserAction );
+
+    KToggleAction* colorpickerAction = new KToggleAction( this );
+    colorpickerAction->setText( i18n( "Color Picker" ) );
+    colorpickerAction->setIcon( KIcon( "color-picker" ) );
+    colorpickerAction->setData( QVariant::fromValue( KIconEdit::Colorpicker ) );
+    actionCollection()->addAction( "tool_colorpicker", colorpickerAction );
+    toolActionGroup->addAction( colorpickerAction );
+
     KStandardAction::openNew( this, SLOT( newFile() ), actionCollection() );
     KStandardAction::open( this, SLOT( openFile() ), actionCollection() );
     KStandardAction::save( this, SLOT( saveFile() ), actionCollection() );

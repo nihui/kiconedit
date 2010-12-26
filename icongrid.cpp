@@ -26,12 +26,6 @@ IconGrid::IconGrid( Palette* palette, QWidget* parent )
     /// FIXME:generate random colors
     for ( int i = 0; i < m_rows; ++i ) {
         for ( int j = 0; j < m_cols; ++j ) {
-//             srand( (i+1) * 100 + j+1 );
-//             int r = rand() % 255;
-//             srand( (i+1) * 10 + j+1 );
-//             int g = rand() % 255;
-//             srand( (i+1) * 200 + j+1 );
-//             int b = rand() % 255;
             m_colorArray.append( QColor(0,0,0,0)/*QColor( r, g, b )*/ );
         }
     }
@@ -212,28 +206,28 @@ void IconGrid::mouseReleaseEvent( QMouseEvent* event )
     QWidget::mouseReleaseEvent( event );
 
 //     if ( rect().contains( event->pos() ) ) {
-    if ( event->buttons() == Qt::LeftButton ) {
+//     if ( event->buttons() == Qt::LeftButton ) {
 //             int x = event->x();
 //             int y = event->y();
 //             m_currentCol = x / m_unitPixels;
 //             m_currentRow = y / m_unitPixels;
 //            /// FIXME:
 //
-        switch ( m_tooltype ) {
-            case KIconEdit::Freehand:
-    //             qDebug() << "END";
-                m_undoStack.endMacro();
-                break;
-            case KIconEdit::Line:
-    //             qWarning() << "END";
-                m_undoStack.push( m_drawCommand );
-                m_drawCommand = NULL;
-                m_undoStack.endMacro();
-                break;
-            default:
-                break;
-        }
+    switch ( m_tooltype ) {
+        case KIconEdit::Freehand:
+//             qDebug() << "END";
+            m_undoStack.endMacro();
+            break;
+        case KIconEdit::Line:
+//             qWarning() << "END";
+            m_undoStack.push( m_drawCommand );
+            m_drawCommand = NULL;
+            m_undoStack.endMacro();
+            break;
+        default:
+            break;
     }
+//     }
 //     }
 }
 
