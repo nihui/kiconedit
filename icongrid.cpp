@@ -16,6 +16,8 @@
 IconGrid::IconGrid( Palette* palette, QWidget* parent )
     : QWidget( parent ), m_palette( palette )
 {
+    m_drawCommand = NULL;
+
     m_cols = 60;
     m_rows = 40;
     m_unitPixels = 10;
@@ -78,7 +80,7 @@ QColor IconGrid::cellColorAt( int col, int row ) const
 void IconGrid::setCellColor( int col, int row, const QColor& color )
 {
     m_colorArray[ row * m_cols + col ] = color;
-    repaint( col * m_unitPixels, row * m_unitPixels, m_unitPixels, m_unitPixels );
+    update( col * m_unitPixels, row * m_unitPixels, m_unitPixels, m_unitPixels );
 }
 
 void IconGrid::setCellColor( const QPoint& pos, const QColor& color )
@@ -121,22 +123,26 @@ void IconGrid::mouseMoveEvent( QMouseEvent* event )
         int newCol = x / m_unitPixels;
         int newRow = y / m_unitPixels;
 
-        bool draw_freehand = false;
+        bool drawing = false;
         if ( newCol != oldCol ) {
             oldCol = newCol;
             emit cursorColChanged( newCol );
             emit cursorXChanged( newCol*m_unitPixels );
-            draw_freehand = true;
+            drawing = true;
         }
         if ( newRow != oldRow ) {
             oldRow = newRow;
             emit cursorRowChanged( newRow );
             emit cursorYChanged( newRow*m_unitPixels );
-            draw_freehand = true;
+            drawing = true;
         }
+        /// moving within a single grid, no need to draw
+        if ( !drawing )
+            return;
+
         switch ( m_tooltype ) {
             case KIconEdit::Freehand:
-                if ( draw_freehand && event->buttons() == Qt::LeftButton ) {
+                if ( event->buttons() == Qt::LeftButton ) {
                     if ( m_colorArray[ newRow * m_cols + newCol ] != m_palette->foregroundColor() ) {
                         /// FIXME:change the color
                         m_undoStack.push( new DrawLine( this, oldCol_r, oldRow_r, newCol, newRow,
@@ -144,6 +150,19 @@ void IconGrid::mouseMoveEvent( QMouseEvent* event )
                     }
                 }
                 break;
+            case KIconEdit::Line: {
+                if ( event->buttons() == Qt::LeftButton ) {
+                    /// draw line in realtime
+                    if ( m_drawCommand ) {
+                        m_drawCommand->undo();
+                        delete m_drawCommand;
+                    }
+                    m_drawCommand = new DrawLine( this, m_currentCol, m_currentRow, newCol, newRow,
+                                                  m_palette->foregroundColor() );
+                    m_drawCommand->redo();
+                }
+                break;
+            }
             default:
                 break;
         }
@@ -168,6 +187,13 @@ void IconGrid::mousePressEvent( QMouseEvent* event )
                     m_undoStack.push( new DrawCell( this, m_currentCol, m_currentRow,
                                                     m_palette->foregroundColor() ) );
                     break;
+                case KIconEdit::Line: {
+//                     qWarning() << "BEGIN";
+                    m_undoStack.beginMacro( "line" );
+                    m_undoStack.push( new DrawCell( this, m_currentCol, m_currentRow,
+                                                    m_palette->foregroundColor() ) );
+                    break;
+                }
                 default:
                     break;
             }
@@ -180,19 +206,25 @@ void IconGrid::mouseReleaseEvent( QMouseEvent* event )
     QWidget::mouseReleaseEvent( event );
 
     if ( rect().contains( event->pos() ) ) {
-        if ( event->buttons() == Qt::LeftButton ) {
-            int x = event->x();
-            int y = event->y();
-            m_currentCol = x / m_unitPixels;
-            m_currentRow = y / m_unitPixels;
-            /// FIXME:
-
-        }
+//         if ( event->buttons() == Qt::LeftButton ) {
+//             int x = event->x();
+//             int y = event->y();
+//             m_currentCol = x / m_unitPixels;
+//             m_currentRow = y / m_unitPixels;
+//            /// FIXME:
+// 
+//         }
     }
 
     switch ( m_tooltype ) {
         case KIconEdit::Freehand:
 //             qDebug() << "END";
+            m_undoStack.endMacro();
+            break;
+        case KIconEdit::Line:
+//             qWarning() << "END";
+            m_undoStack.push( m_drawCommand );
+            m_drawCommand = NULL;
             m_undoStack.endMacro();
             break;
         default:

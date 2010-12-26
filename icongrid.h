@@ -54,6 +54,7 @@ class IconGrid : public QWidget
         int m_unitPixels;
         int m_currentCol;
         int m_currentRow;
+        QUndoCommand* m_drawCommand;
         QUndoStack m_undoStack;
 };
 
