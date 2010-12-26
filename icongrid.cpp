@@ -225,10 +225,13 @@ void IconGrid::paintEvent( QPaintEvent* event )
             painter.fillRect( xStart, yStart + m_unitPixels / 2,
                               m_unitPixels / 2, m_unitPixels / 2,
                               Qt::lightGray );
-            /// draw icon pixels
-            painter.fillRect( xStart, yStart,
-                              m_unitPixels, m_unitPixels,
-                              m_colorArray.at( index++ ) );
+            /// draw icon pixels if not fully transparent
+            if ( m_colorArray.at( index ).alpha() != 0 ) {
+                painter.fillRect( xStart, yStart,
+                                  m_unitPixels, m_unitPixels,
+                                  m_colorArray.at( index ) );
+            }
+            index++;
         }
     }
 
