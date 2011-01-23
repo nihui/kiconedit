@@ -1,9 +1,6 @@
-#include "palette.h"
-#include "gridview.h"
-#include "icongrid.h"
+
 #include "mainwindow.h"
 
-#include <QDockWidget>
 #include <QTextStream>
 
 #include <KDebug>
@@ -14,80 +11,56 @@
 #include <KIO/NetAccess>
 #include <KLocale>
 #include <KMessageBox>
-#include <KRuler>
 #include <KSaveFile>
 #include <KStandardAction>
 #include <KToggleAction>
 
+#include <KService>
 
-MainWindow::MainWindow( QWidget* parent )
-    : KXmlGuiWindow( parent ),
-      m_fileName( QString() )
+
+MainWindow::MainWindow()
+: KParts::MainWindow()
 {
-
-    QDockWidget* paletteDock = new QDockWidget( i18n( "Palette" ), this );
-    paletteDock->setObjectName( "paletteDock" );
-    paletteDock->setFeatures( QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable );
-    paletteDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );
-    m_palette = new Palette( paletteDock );
-    paletteDock->setWidget( m_palette );
-    addDockWidget( Qt::RightDockWidgetArea, paletteDock );
-    ///viewMenu->addAction( paletteDock->toggleViewAction() );
-
-    m_iconGrid = new IconGrid( m_palette );
-    m_view = new GridView( m_iconGrid );
-    setCentralWidget( m_view );
-
     setupActions();
+    KService::Ptr service = KService::serviceByDesktopPath( "kiconeditpart.desktop" );
+    if ( service ) {
+        m_part = service->createInstance<KParts::ReadWritePart>( 0 );
+        if ( m_part ) {
+            setCentralWidget( m_part->widget() );
+            setupGUI( ToolBar | Keys | StatusBar | Save );
+            createGUI( m_part );
+        }
+        else {
+            return;
+        }
+    }
+    else {
+        KMessageBox::error( this, "Service kiconeditpart.desktop not found." );
+        qApp->quit();
+        return;
+    }
 }
 
 MainWindow::~MainWindow()
 {
-//     kDebug() << "@@@@@@@@@";
+}
+
+void MainWindow::load( const KUrl& url )
+{
+    m_part->openUrl( url );
+}
+
+void MainWindow::load()
+{
+    load( KFileDialog::getOpenUrl() );
 }
 
 void MainWindow::setupActions()
 {
-    KAction* resizeAction = new KAction( this );
-    resizeAction->setText( i18n( "Resi&ze..." ) );
-    resizeAction->setIcon( KIcon( "transform-scale" ) );
-    ///clearAction->setShortcut( Qt::CTRL + Qt::Key_W );
-    actionCollection()->addAction( "edit_resize", resizeAction );
-    ///connect( resizeAction, SIGNAL( triggered( bool ) ), textArea, SLOT( clear() ) );
-
-    QActionGroup* toolActionGroup = new QActionGroup( this );
-    connect( toolActionGroup, SIGNAL(triggered(QAction*)), m_iconGrid, SLOT(slotToolChanged(QAction*)) );
-
-    KToggleAction* freehandAction = new KToggleAction( this );
-    freehandAction->setText( i18n( "Freehand" ) );
-    freehandAction->setIcon( KIcon( "draw-freehand" ) );
-    freehandAction->setData( QVariant::fromValue( KIconEdit::Freehand ) );
-    actionCollection()->addAction( "tool_freehand", freehandAction );
-    toolActionGroup->addAction( freehandAction );
-
-    KToggleAction* lineAction = new KToggleAction( this );
-    lineAction->setText( i18n( "Line" ) );
-    lineAction->setIcon( KIcon( "draw-line" ) );
-    lineAction->setData( QVariant::fromValue( KIconEdit::Line ) );
-    actionCollection()->addAction( "tool_line", lineAction );
-    toolActionGroup->addAction( lineAction );
-
-    KToggleAction* eraserAction = new KToggleAction( this );
-    eraserAction->setText( i18n( "Eraser" ) );
-    eraserAction->setIcon( KIcon( "draw-eraser" ) );
-    eraserAction->setData( QVariant::fromValue( KIconEdit::Eraser ) );
-    actionCollection()->addAction( "tool_eraser", eraserAction );
-    toolActionGroup->addAction( eraserAction );
-
-    KToggleAction* colorpickerAction = new KToggleAction( this );
-    colorpickerAction->setText( i18n( "Color Picker" ) );
-    colorpickerAction->setIcon( KIcon( "color-picker" ) );
-    colorpickerAction->setData( QVariant::fromValue( KIconEdit::Colorpicker ) );
-    actionCollection()->addAction( "tool_colorpicker", colorpickerAction );
-    toolActionGroup->addAction( colorpickerAction );
-
     KStandardAction::openNew( this, SLOT( newFile() ), actionCollection() );
-    KStandardAction::open( this, SLOT( openFile() ), actionCollection() );
+
+    KStandardAction::open( this, SLOT( load() ), actionCollection() );
+
     KStandardAction::save( this, SLOT( saveFile() ), actionCollection() );
     KStandardAction::saveAs( this, SLOT( saveFileAs() ), actionCollection() );
     KStandardAction::print( this, SLOT( print() ), actionCollection() );
@@ -95,78 +68,55 @@ void MainWindow::setupActions()
     KStandardAction::quit( kapp, SLOT( quit() ), actionCollection() );
 
     KStandardAction::preferences( this, SLOT( slotConfigureSettings() ), actionCollection() );
-
-    KStandardAction::undo( m_iconGrid, SLOT( undo() ), actionCollection() );
-    KStandardAction::redo( m_iconGrid, SLOT( redo() ), actionCollection() );
-
-    KStandardAction::cut( this, SLOT( cut() ), actionCollection() );
-    KStandardAction::copy( this, SLOT( copy() ), actionCollection() );
-    KStandardAction::paste( this, SLOT( paste() ), actionCollection() );
-    KStandardAction::clear( m_iconGrid, SLOT( clear() ), actionCollection() );
-    KStandardAction::selectAll( this, SLOT( selectAll() ), actionCollection() );
-
-    KStandardAction::zoomIn( m_view, SLOT( zoomIn() ), actionCollection() );
-    KStandardAction::zoomOut( m_view, SLOT( zoomOut() ), actionCollection() );
-    KStandardAction::actualSize( m_view, SLOT( zoomReset() ), actionCollection() );
-    setupGUI();
 }
 
-void MainWindow::newFile()
-{
-    m_fileName.clear();
-//     textArea->clear();
-}
-
-void MainWindow::saveFileAs( const QString& outputFileName )
-{
-//     KSaveFile file( outputFileName );
-//     file.open();
-
-//     QByteArray outputByteArray;
-//     outputByteArray.append( textArea->toPlainText().toUtf8() );
-//     file.write( outputByteArray );
-//     file.finalize();
-//     file.close();
-    m_iconGrid->toImage().save( outputFileName, "PNG" );
-
-    m_fileName = outputFileName;
-}
-
-void MainWindow::saveFileAs()
-{
-    saveFileAs( KFileDialog::getSaveFileName() );
-}
-
-void MainWindow::saveFile()
-{
-    if( !m_fileName.isEmpty() ) {
-        saveFileAs( m_fileName );
-    }
-    else {
-        saveFileAs();
-    }
-}
-
-void MainWindow::openFile()
-{
-    QString fileNameFromDialog = KFileDialog::getOpenFileName();
-
-    QString tmpFile;
-    if( KIO::NetAccess::download( fileNameFromDialog, tmpFile, this ) ) {
-        QFile file( tmpFile );
-        file.open( QIODevice::ReadOnly );
-//         textArea->setPlainText( QTextStream( &file ).readAll() );
-        m_fileName = fileNameFromDialog;
-
-        KIO::NetAccess::removeTempFile( tmpFile );
-    }
-    else {
-        KMessageBox::error( this, KIO::NetAccess::lastErrorString() );
-    }
-}
-
-void MainWindow::print()
-{
+// void MainWindow::newFile()
+// {
+//     m_fileName.clear();
+// }
+// 
+// void MainWindow::saveFileAs( const QString& outputFileName )
+// {
+//     m_iconGrid->toImage().save( outputFileName, "PNG" );
+// 
+//     m_fileName = outputFileName;
+// }
+// 
+// void MainWindow::saveFileAs()
+// {
+//     saveFileAs( KFileDialog::getSaveFileName() );
+// }
+// 
+// void MainWindow::saveFile()
+// {
+//     if( !m_fileName.isEmpty() ) {
+//         saveFileAs( m_fileName );
+//     }
+//     else {
+//         saveFileAs();
+//     }
+// }
+// 
+// void MainWindow::openFile()
+// {
+//     QString fileNameFromDialog = KFileDialog::getOpenFileName();
+// 
+//     QString tmpFile;
+//     if( KIO::NetAccess::download( fileNameFromDialog, tmpFile, this ) ) {
+//         QFile file( tmpFile );
+//         file.open( QIODevice::ReadOnly );
+// //         textArea->setPlainText( QTextStream( &file ).readAll() );
+//         m_fileName = fileNameFromDialog;
+// 
+//         KIO::NetAccess::removeTempFile( tmpFile );
+//     }
+//     else {
+//         KMessageBox::error( this, KIO::NetAccess::lastErrorString() );
+//     }
+// }
+// 
+// void MainWindow::print()
+// {
 //     QPrinter printer;
 //     QPrintDialog printDialog( &printer, this );
 //     printDialog.setWindowTitle( "Xxx"/*i18n( "Print %1", icon->url().section('/', -1) )*/ );
@@ -184,4 +134,4 @@ void MainWindow::print()
 //         p.drawPixmap( margin, margin + yPos, grid->pixmap() );
 //         p.end();
 //     }
-}
+// }

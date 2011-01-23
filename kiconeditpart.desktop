@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Service
+Icon=kiconedit
+Name=KIconEdit Part
+MimeType=all/allfiles;
+X-KDE-ServiceTypes=KParts/ReadOnlyPart,Browser/View,KParts/ReadWritePart
+X-KDE-Library=kiconeditpart

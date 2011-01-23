@@ -1,47 +1,21 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <KXmlGuiWindow>
+#include <KParts/MainWindow>
 
-class QWidget;
-class GridView;
-class IconGrid;
-class Palette;
-
-namespace KIconEdit {
-    typedef enum {
-        None        = 0,
-        Freehand    = 1,
-        Line        = 2,
-        Eraser      = 3,
-        Colorpicker = 4,
-        Rectangle   = 5,
-        Ellipse     = 6
-    } ToolType;
-}
-
-Q_DECLARE_METATYPE(KIconEdit::ToolType)
-
-class MainWindow : public KXmlGuiWindow
+class MainWindow : public KParts::MainWindow
 {
     Q_OBJECT
     public:
-        MainWindow( QWidget* parent = 0 );
-        ~MainWindow();
-    private slots:
-        void newFile();
-        void openFile();
-        void saveFile();
-        void saveFileAs();
-        void saveFileAs( const QString& outputFileName );
-        void print();
+        explicit MainWindow();
+        virtual ~MainWindow();
+    public Q_SLOTS:
+        void load( const KUrl& url );
+        void load();
     private:
-        QString m_fileName;
-        GridView* m_view;
-        IconGrid* m_iconGrid;
-        Palette* m_palette;
         void setupActions();
+    private:
+        KParts::ReadWritePart* m_part;
 };
-
 
 #endif // MAINWINDOW_H

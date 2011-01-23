@@ -6,19 +6,27 @@ include_directories(${KDE4_INCLUDES})
 
 ########### next target ###############
 
-set(kiconedit_SRCS
+set(kiconeditpart_SRCS
+    kiconeditpart.cpp
     icongrid.cpp
     gridview.cpp
-    main.cpp
-    mainwindow.cpp
     palette.cpp
 )
 
+kde4_add_plugin(kiconeditpart ${kiconeditpart_SRCS})
+target_link_libraries(kiconeditpart ${KDE4_KPARTS_LIBS})
+
+install(TARGETS kiconeditpart DESTINATION ${PLUGIN_INSTALL_DIR})
+install(FILES kiconeditpart.desktop DESTINATION ${SERVICES_INSTALL_DIR})
+install(FILES kiconeditpartui.rc DESTINATION ${DATA_INSTALL_DIR}/kiconeditpart)
+
+set(kiconedit_SRCS
+    main.cpp
+    mainwindow.cpp
+)
+
 kde4_add_executable(kiconedit ${kiconedit_SRCS})
+target_link_libraries(kiconedit ${KDE4_KDEUI_LIBS} ${KDE4_KPARTS_LIBS})
 
-target_link_libraries(kiconedit ${KDE4_KIO_LIBS} )
-
-install(TARGETS kiconedit ${INSTALL_TARGETS_DEFAULT_ARGS} )
-
-########### install files ###############
-install( FILES kiconeditui.rc  DESTINATION  ${DATA_INSTALL_DIR}/kiconedit )
+install(TARGETS kiconedit DESTINATION ${BIN_INSTALL_DIR})
+install(FILES kiconeditui.rc DESTINATION ${DATA_INSTALL_DIR}/kiconedit)

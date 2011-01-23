@@ -7,7 +7,7 @@
 #include <QVector>
 #include <QWidget>
 
-#include "mainwindow.h"
+#include "kiconeditpart.h"
 
 class QMouseEvent;
 class QPaintEvent;
